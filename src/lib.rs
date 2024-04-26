@@ -3,7 +3,7 @@ use std::collections::HashSet;
 
 pub type SudokuGrid = SMatrix<u8, 9, 9>;
 type Values = HashSet<u8>;
-struct SudokuSolver {}
+pub struct SudokuSolver {}
 
 impl SudokuSolver {
     pub fn solve(puzzle: &SudokuGrid) -> Option<SudokuGrid> {
