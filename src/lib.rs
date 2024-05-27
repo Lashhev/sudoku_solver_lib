@@ -19,7 +19,9 @@ impl SudokuSolver {
         let mut min_column: Option<usize> = None;
         let mut min_values: Option<Values> = None;
         // print!("{}", puzzle);
-        loop {
+        let mut counter = 0u64;
+        while counter < 100000u64 {
+            counter = counter +1;
             min_row = None;
             min_values = None;
             min_column = None;
@@ -51,6 +53,10 @@ impl SudokuSolver {
             } else if 1 < min_values.as_ref().unwrap().len() {
                 break;
             }
+        }
+        if counter >= 100000u64
+        {
+            return false;
         }
         for v in min_values.unwrap() {
             let mut puzzle_copy = puzzle.clone();
@@ -108,7 +114,7 @@ mod tests {
     type SudokuRow = RowSVector<u8, 9>;
     #[test]
     fn it_works() {
-        let puzzle = SudokuGrid::from_rows(&[
+        let puzzle1 = SudokuGrid::from_rows(&[
             SudokuRow::from_vec(vec![0, 0, 0, 0, 6, 0, 7, 0, 0]),
             SudokuRow::from_vec(vec![0, 5, 9, 0, 0, 0, 0, 0, 0]),
             SudokuRow::from_vec(vec![0, 1, 0, 2, 0, 0, 0, 0, 0]),
@@ -119,8 +125,30 @@ mod tests {
             SudokuRow::from_vec(vec![0, 0, 0, 0, 0, 0, 0, 9, 1]),
             SudokuRow::from_vec(vec![8, 0, 0, 7, 4, 0, 0, 0, 0]),
         ]);
+        let puzzle2 = SudokuGrid::from_rows(&[
+            SudokuRow::from_vec(vec![5, 0, 6, 0, 0, 7, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 0, 5, 2, 4, 9, 8]),
+            SudokuRow::from_vec(vec![0, 2, 0, 0, 0, 0, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 7, 0, 0, 0, 9, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 5, 0, 4, 0, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 1, 0, 0, 6, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 9, 0, 6, 7, 3, 0]),
+            SudokuRow::from_vec(vec![0, 0, 9, 0, 7, 0, 0, 6, 0]),
+            SudokuRow::from_vec(vec![8, 0, 0, 3, 0, 5, 0, 0, 4]),
+        ]);
 
-        let ref_sol = SudokuGrid::from_rows(&[
+        let puzzle3 = SudokuGrid::from_rows(&[
+            SudokuRow::from_vec(vec![5, 0, 7, 0, 0, 7, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 0, 5, 2, 4, 9, 8]),
+            SudokuRow::from_vec(vec![0, 2, 0, 0, 0, 0, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 7, 0, 0, 0, 9, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 5, 0, 4, 0, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 1, 0, 0, 6, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 9, 0, 6, 7, 3, 0]),
+            SudokuRow::from_vec(vec![0, 2, 9, 0, 7, 0, 0, 6, 0]),
+            SudokuRow::from_vec(vec![8, 0, 0, 3, 0, 5, 0, 0, 4]),
+        ]);
+        let ref_sol1 = SudokuGrid::from_rows(&[
             SudokuRow::from_vec(vec![2, 3, 8, 9, 6, 5, 7, 1, 4]),
             SudokuRow::from_vec(vec![7, 5, 9, 4, 1, 3, 6, 8, 2]),
             SudokuRow::from_vec(vec![4, 1, 6, 2, 7, 8, 9, 5, 3]),
@@ -131,9 +159,29 @@ mod tests {
             SudokuRow::from_vec(vec![5, 7, 4, 6, 8, 2, 3, 9, 1]),
             SudokuRow::from_vec(vec![8, 9, 3, 7, 4, 1, 5, 2, 6]),
         ]);
-        let sol = SudokuSolver::solve(&puzzle);
-        assert!(sol.is_some());
-        println!("{}", sol.unwrap());
-        assert_eq!(sol.unwrap(), ref_sol);
+
+        let ref_sol2 = SudokuGrid::from_rows(&[
+            SudokuRow::from_vec(vec![5, 8, 6, 4, 9, 7, 3, 1, 2]),
+            SudokuRow::from_vec(vec![7, 3, 1, 6, 5, 2, 4, 9, 8]),
+            SudokuRow::from_vec(vec![9, 2, 4, 8, 3, 1, 5, 7, 6]),
+            SudokuRow::from_vec(vec![2, 7, 8, 5, 6, 9, 1, 4, 3]),
+            SudokuRow::from_vec(vec![6, 1, 5, 7, 4, 3, 2, 8, 9]),
+            SudokuRow::from_vec(vec![4, 9, 3, 1, 2, 8, 6, 5, 7]),
+            SudokuRow::from_vec(vec![1, 4, 2, 9, 8, 6, 7, 3, 5]),
+            SudokuRow::from_vec(vec![3, 5, 9, 2, 7, 4, 8, 6, 1]),
+            SudokuRow::from_vec(vec![8, 6, 7, 3, 1, 5, 9, 2, 4]),
+        ]);
+        let sol1 = SudokuSolver::solve(&puzzle1);
+        assert!(sol1.is_some());
+        assert_eq!(sol1.unwrap(), ref_sol1);
+
+        let sol2 = SudokuSolver::solve(&puzzle2);
+        assert!(sol2.is_some());
+        assert_eq!(sol2.unwrap(), ref_sol2);
+
+        let sol3 = SudokuSolver::solve(&puzzle3);
+        assert!(!sol3.is_some());
+        // assert_eq!(sol2.unwrap(), ref_sol2);
+
     }
 }
