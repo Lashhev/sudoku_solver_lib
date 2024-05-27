@@ -1,5 +1,6 @@
 use nalgebra::SMatrix;
 use std::collections::HashSet;
+use std::fs;
 
 pub type SudokuGrid = SMatrix<u8, 9, 9>;
 type Values = HashSet<u8>;
@@ -14,6 +15,7 @@ impl SudokuSolver {
             None
         }
     }
+    
     fn solve_imp(puzzle: &mut SudokuGrid) -> bool {
         let mut min_row: Option<usize> = None;
         let mut min_column: Option<usize> = None;
@@ -68,6 +70,7 @@ impl SudokuSolver {
         }
         false
     }
+    
     fn find_possible_values(puzzle: &SudokuGrid, row_index: usize, column_index: usize) -> Values {
         let mut values = Values::from_iter(1..10);
         let in_rows = SudokuSolver::get_row_values(puzzle, row_index);
@@ -104,6 +107,18 @@ impl SudokuSolver {
             }
         }
         values
+    }
+
+    pub fn save(path: String, puzzle: &SudokuGrid) {
+        fs::write(path, serde_json::to_string(puzzle).unwrap()).expect("Can't write to file");
+    }
+
+    pub fn load(path: String) -> SudokuGrid {
+        let puzzle = {
+        let res: String = fs::read_to_string(path).expect("Can't read file");
+        serde_json::from_str::<SudokuGrid>(&res).unwrap()
+        };
+        puzzle
     }
 }
 
