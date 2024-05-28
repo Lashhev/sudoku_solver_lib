@@ -4,10 +4,18 @@ use std::fs;
 
 pub type SudokuGrid = SMatrix<u8, 9, 9>;
 type Values = HashSet<u8>;
-pub struct SudokuSolver {}
+pub struct SudokuSolver {
+}
 
 impl SudokuSolver {
+    const MAX_ITER: u32 = 1000u32;
+
+
     pub fn solve(puzzle: &SudokuGrid) -> Option<SudokuGrid> {
+        if !SudokuSolver::check_input(puzzle)
+        {
+            return None;
+        }
         let mut solution = puzzle.clone();
         if SudokuSolver::solve_imp(&mut solution) {
             Some(solution)
@@ -15,14 +23,81 @@ impl SudokuSolver {
             None
         }
     }
+    /**
+     * Doesn't check if an input sudoku puzzle is valid.(it has only unique numbers in each row, column and block)
+     */
+    pub fn solve_unchecked(puzzle: &SudokuGrid) -> Option<SudokuGrid> {
+        let mut solution = puzzle.clone();
+        if SudokuSolver::solve_imp(&mut solution) {
+            Some(solution)
+        } else {
+            None
+        }
+    }
+
+    fn check_input(puzzle: &SudokuGrid) -> bool
+    {
+        for row_index in 0..9 {
+            for column_index in 0..9
+            {
+                return SudokuSolver::check_row(puzzle, row_index) && SudokuSolver::check_cols(puzzle, column_index)
+                    &&  SudokuSolver::check_block(puzzle, row_index, column_index);
+            }
+        }
+        true
+    }
+
+    fn check_row(puzzle: &SudokuGrid, row_index: usize) -> bool {
+        let mut values = Values::new();
+        for v in &puzzle.row(row_index) {
+            if !values.contains(v) || *v == 0u8 {
+                values.insert(v.clone());
+            }
+            else {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn check_cols(puzzle: &SudokuGrid, col_index: usize) -> bool {
+        let mut values = Values::new();
+        for v in &puzzle.column(col_index) {
+            if !values.contains(v) || *v == 0u8 {
+            values.insert(v.clone());
+            }
+            else {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn check_block(puzzle: &SudokuGrid, row_index: usize, column_index: usize) -> bool {
+        let mut values = Values::new();
+        let block_row_start = 3 * (row_index / 3);
+        let block_column_start = 3 * (column_index / 3);
+        for r in 0..3 {
+            for c in 0..3 {
+                let v = puzzle[((block_row_start + r), (block_column_start + c))];
+                if !values.contains(&v) || v == 0u8 {
+                values.insert(v);
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+        true
+    }
     
     fn solve_imp(puzzle: &mut SudokuGrid) -> bool {
         let mut min_row: Option<usize> = None;
         let mut min_column: Option<usize> = None;
         let mut min_values: Option<Values> = None;
         // print!("{}", puzzle);
-        let mut counter = 0u64;
-        while counter < 100000u64 {
+        let mut counter = 0u32;
+        while counter < SudokuSolver::MAX_ITER {
             counter = counter +1;
             min_row = None;
             min_values = None;
@@ -56,7 +131,7 @@ impl SudokuSolver {
                 break;
             }
         }
-        if counter >= 100000u64
+        if counter >= SudokuSolver::MAX_ITER
         {
             return false;
         }
@@ -163,6 +238,17 @@ mod tests {
             SudokuRow::from_vec(vec![0, 2, 9, 0, 7, 0, 0, 6, 0]),
             SudokuRow::from_vec(vec![8, 0, 0, 3, 0, 5, 0, 0, 4]),
         ]);
+        let puzzle4 = SudokuGrid::from_rows(&[
+            SudokuRow::from_vec(vec![0, 0, 7, 0, 0, 7, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 0, 0, 0, 0, 9, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            SudokuRow::from_vec(vec![0, 0, 0, 0, 0, 0, 0, 0, 0]),
+        ]);
         let ref_sol1 = SudokuGrid::from_rows(&[
             SudokuRow::from_vec(vec![2, 3, 8, 9, 6, 5, 7, 1, 4]),
             SudokuRow::from_vec(vec![7, 5, 9, 4, 1, 3, 6, 8, 2]),
@@ -195,8 +281,27 @@ mod tests {
         assert_eq!(sol2.unwrap(), ref_sol2);
 
         let sol3 = SudokuSolver::solve(&puzzle3);
-        assert!(!sol3.is_some());
+        assert!(sol3.is_none());
         // assert_eq!(sol2.unwrap(), ref_sol2);
 
+        let sol4 = SudokuSolver::solve(&puzzle4);
+        // println!("{}", sol4.unwrap());
+        assert!(sol4.is_none());
+
+    }
+    #[test]
+    fn io_test() {
+        let ref_sol1 = SudokuGrid::from_rows(&[
+            SudokuRow::from_vec(vec![2, 3, 8, 9, 6, 5, 7, 1, 4]),
+            SudokuRow::from_vec(vec![7, 5, 9, 4, 1, 3, 6, 8, 2]),
+            SudokuRow::from_vec(vec![4, 1, 6, 2, 7, 8, 9, 5, 3]),
+            SudokuRow::from_vec(vec![9, 4, 5, 1, 3, 6, 2, 7, 8]),
+            SudokuRow::from_vec(vec![6, 8, 7, 5, 2, 4, 1, 3, 9]),
+            SudokuRow::from_vec(vec![3, 2, 1, 8, 9, 7, 4, 6, 5]),
+            SudokuRow::from_vec(vec![1, 6, 2, 3, 5, 9, 8, 4, 7]),
+            SudokuRow::from_vec(vec![5, 7, 4, 6, 8, 2, 3, 9, 1]),
+            SudokuRow::from_vec(vec![8, 9, 3, 7, 4, 1, 5, 2, 6]),
+        ]);
+        SudokuSolver::save("data.json".to_string(), &ref_sol1);
     }
 }
